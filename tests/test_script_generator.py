@@ -2,7 +2,7 @@
 module docstring
 """
 
-from cptools2 import script_generator
+from scissorhands import script_generator
 import os
 
 def test_SGEScript():
@@ -17,7 +17,7 @@ def test_SGEScript():
     assert my_script.__repr__() == repr_str
     assert my_script.template
     my_script.template += "#$ -another_option"
-    assert my_script.template.split("\n")[-2] == "#$ -another_option"
+    assert my_script.template.split("\n")[-1] == "#$ -another_option"
 
 
 def test_SGEScript_mock_cluster():

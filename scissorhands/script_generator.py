@@ -102,7 +102,7 @@ class AnalysisScript(SGEScript):
     --------
     """
 
-    def __init__(self, array=True, tasks=None, hold_jid=False,
+    def __init__(self, array=False, tasks=None, hold_jid=False,
                  hold_jid_ad=False, pe=None, *args, **kwargs):
         SGEScript.__init__(self, *args, **kwargs)
 

@@ -124,8 +124,8 @@ n_commands = file_len("my_commands.txt")
 
 # make submission script
 my_script = AnalysisScript(name="my_array_job", tasks=n_commands)
+my_script.template += "module load python\n"
 my_script.loop_through_file("my_commands.txt")
-my_script.template += "module load python"
 my_script.save("my_array_job.sh")
 ```
 
@@ -144,7 +144,8 @@ Which saves this file:
 
 . /etc/profiles.d/modules.sh
 module load python
-SEEDFILE=my_commands.txt
+
+SEEDFILE="my_commands.txt"
 SEED=$(awk "NR==$SGE_TASK_ID" "$SEEDFILE")
 $SEED
 

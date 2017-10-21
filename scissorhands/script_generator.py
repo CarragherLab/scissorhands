@@ -173,7 +173,7 @@ class AnalysisScript(SGEScript):
             raise AttributeError("Cannot use method `loop_through_files` "
                                  "without settings `tasks` argument")
         text = """
-               SEEDFILE={input_file}
+               SEEDFILE="{input_file}"
                SEED=$(awk "NR==$SGE_TASK_ID" "$SEEDFILE")
                $SEED
                """.format(input_file=input_file)

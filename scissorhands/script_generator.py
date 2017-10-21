@@ -89,7 +89,7 @@ class AnalysisScript(SGEScript):
     -----------
     array: Boolean
 
-    tasks: string
+    tasks: string, int or list of 2 ints
 
     hold_jid: string
 
@@ -100,18 +100,43 @@ class AnalysisScript(SGEScript):
 
     Methods:
     --------
+
+    loop_through_file:
+        Adds text to template to loop through `input_file`, running a 
+        task for each line of `input_file` as an array job.
+        
+        Parameters:
+        ------------
+        intput_file: string
+            path to file containing commands
+
+        Returns:
+        --------
+        Nothing, adds text to template script in place.
     """
 
-    def __init__(self, array=False, tasks=None, hold_jid=False,
+    def __init__(self, tasks=None, hold_jid=False,
                  hold_jid_ad=False, pe=None, *args, **kwargs):
         SGEScript.__init__(self, *args, **kwargs)
 
-        if array is True and tasks is not None:
+        if tasks is not None:
+            # if tasks is a list of two numbers, then we can take that as
+            # [start, end] and parse that into a string "start-end"
+            if isinstance(tasks, list) and all(isinstance(i, int) for i in tasks):
+                if len(tasks) == 2:
+                    tasks = "{}-{}".format(*tasks)
+                else:
+                    msg = "'tasks' has to be either a list of length 2 or a str"
+                    raise ValueError(msg)
+            # if tasks is a single integer then we can take that as 1-tasks
+            if isinstance(tasks, int):
+                tasks = "1-{}".format(tasks)
+            self.array = True
+            self.tasks = tasks
             self.template += "#$ -t {}\n".format(tasks)
-        if array is True and tasks is None:
-            raise ValueError("No argument for tasks given, yet array is True")
-        if array is False and tasks is not None:
-            raise ValueError("tasks only work with array jobs")
+        else:
+            self.array = False
+
 
         if hold_jid is not False and hold_jid_ad is not False:
             raise ValueError("Cannot use both 'hold_jid' and 'hold_jid_ad'")
@@ -124,6 +149,36 @@ class AnalysisScript(SGEScript):
             self.template += "#$ -pe {}\n".format(pe)
 
         self.template += "\n. /etc/profiles.d/modules.sh\n"
+
+
+    def loop_through_file(self, input_file):
+        """
+        Add text to script template to loop through a file containing a
+        command to be run on each line.
+
+        This using an array job this will setup an awk command to run each
+        line according to the SGE_TASK_ID
+
+        Parameters:
+        -----------
+        input_file: path to a file
+            This file should contain multiple lines of commands.
+            Each line will be run separately in an array  job.
+
+        Returns:
+        --------
+        Nothing, adds text to template script in place.
+        """
+        if self.array is False:
+            raise AttributeError("Cannot use method `loop_through_files` "
+                                 "without settings `tasks` argument")
+        text = """
+               SEEDFILE={input_file}
+               SEED=$(awk "NR==$SGE_TASK_ID" "$SEEDFILE")
+               $SEED
+               """.format(input_file=input_file)
+        self.template += textwrap.dedent(text)
+
 
 
 
@@ -191,7 +246,7 @@ def get_user(user):
 def on_the_cluster():
     """
     Determine if script is currently running on the cluster or not.
-    
+
     NOTE: Currently this works by looking for environment variables.
     The only one I could find that was the same regardless of login, staging
     or compute nodes was $KEYNAME. Might be a better way of checking this as

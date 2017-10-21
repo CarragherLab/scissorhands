@@ -129,7 +129,7 @@ my_script.template += "module load python"
 my_script.save("my_array_job.sh")
 ```
 
-Which produces saves this file:
+Which saves this file:
 
 ```bash
 

@@ -5,7 +5,7 @@ A python module for generating Eddie3 (SunGridEngine) qsub scripts.
 ## Installation
 
 1. Download/clone this repository.
-2. Install using the `setup.py` file.
+2. Install using the `setup.py` file, or with pip.
 
 ```bash
 git clone https://github.com/carragherlab/scissorhands
@@ -155,5 +155,6 @@ $SEED
 
 ```
 
+This uses awk to run each line of code in `commands.txt` corresponding to each `$SGE_TASK_ID`, which in this case is 1 to 6.
+
 ------------
-This uses awk to run each line of code in `commands.txt` corresponding to each `$SGE_TASK_ID`, which in this case is 1..6.

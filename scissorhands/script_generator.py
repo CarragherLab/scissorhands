@@ -143,23 +143,11 @@ class AnalysisScript(SGEScript):
         SGEScript.__init__(self, *args, **kwargs)
 
         if tasks is not None:
-            # if tasks is a list of two numbers, then we can take that as
-            # [start, end] and parse that into a string "start-end"
-            if isinstance(tasks, list) and all(isinstance(i, int) for i in tasks):
-                if len(tasks) == 2:
-                    tasks = "{}-{}".format(*tasks)
-                else:
-                    msg = "'tasks' has to be either a list of length 2 or a str"
-                    raise ValueError(msg)
-            # if tasks is a single integer then we can take that as 1-tasks
-            if isinstance(tasks, int):
-                tasks = "1-{}".format(tasks)
+            self.tasks = parse_tasks(tasks)
             self.array = True
-            self.tasks = tasks
-            self.template += "#$ -t {}\n".format(tasks)
+            self.template += "#$ -t {}\n".format(self.tasks)
         else:
             self.array = False
-
 
         if hold_jid is not False and hold_jid_ad is not False:
             raise ValueError("Cannot use both 'hold_jid' and 'hold_jid_ad'")
@@ -268,6 +256,22 @@ def get_user(user):
         raise ValueError("No argument given for 'user' and not running on "
                          "the cluster, therefore unable to automatically "
                          "detect the username")
+
+
+def parse_tasks(tasks):
+    """parse tasks argument, as it can accept any from: (str, int, list)"""
+    if isinstance(tasks, str):
+        return tasks
+    if isinstance(tasks, list) and all(isinstance(i, int) for i in tasks):
+        if len(tasks) == 2:
+            tasks = "{}-{}".format(*tasks)
+        else:
+            msg = "'tasks' has to be either a list of length 2 or a str"
+            raise ValueError(msg)
+    # if tasks is a single integer then we can take that as 1-tasks
+    if isinstance(tasks, int):
+        tasks = "1-{}".format(tasks)
+    return tasks
 
 
 def on_the_cluster():

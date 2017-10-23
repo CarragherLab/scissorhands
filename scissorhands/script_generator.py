@@ -2,10 +2,10 @@
 Automatically generate SGE submission scripts from a template.
 """
 
-import textwrap
-import random
 import os
-
+import random
+import subprocess
+import textwrap
 
 class SGEScript(object):
     """
@@ -48,6 +48,7 @@ class SGEScript(object):
         self.user = get_user(user)
         self.memory = memory
         self.runtime = runtime
+        self.save_path = None
 
         if output is None:
             output = "/exports/eddie/scratch/{}/".format(self.user)
@@ -71,13 +72,21 @@ class SGEScript(object):
         return "SGEScript: name={}, memory={}, runtime={}, user={}".format(
             self.name, self.memory, self.runtime, self.user)
 
-    def __add__(self, command):
-        return self.template + textwrap.dedent(command + "\n")
-
     def save(self, path):
         """save script/template to path"""
         with open(path, "w") as out_file:
             out_file.write(self.template + "\n")
+        self.save_path = path
+
+    def submit(self):
+        """submit script to the job queue (if on a login node)"""
+        if on_login_node():
+            if self.save_path is None:
+                raise ValueError("Need to save script before submitting")
+            subprocess.Popen(["qsub", os.path.abspath(self.save_path)])
+        else:
+            raise RuntimeError("Cannot submit job, not on a login node.")
+
 
 
 
@@ -102,9 +111,9 @@ class AnalysisScript(SGEScript):
     --------
 
     loop_through_file:
-        Adds text to template to loop through `input_file`, running a 
+        Adds text to template to loop through `input_file`, running a
         task for each line of `input_file` as an array job.
-        
+
         Parameters:
         ------------
         intput_file: string
@@ -172,6 +181,7 @@ class AnalysisScript(SGEScript):
         if self.array is False:
             raise AttributeError("Cannot use method `loop_through_files` "
                                  "without settings `tasks` argument")
+        # one way of getting the line from `input_file` to match $SGE_TASK_ID
         text = """
                SEEDFILE="{input_file}"
                SEED=$(awk "NR==$SGE_TASK_ID" "$SEEDFILE")
@@ -260,3 +270,17 @@ def on_the_cluster():
     except KeyError:
         return False
     return keyname == "id_alcescluster"
+
+
+def on_login_node():
+    """
+    Determine if we are on a login node, i.e not a compute or staging node, and
+    capable of submitting jobs.
+
+    Done my checking for $SGE_ROOT in the environment variables, this is not
+    present on the compute nodes.
+    """
+    if on_the_cluster():
+        return "SGE_ROOT" in os.environ
+    else:
+        return False

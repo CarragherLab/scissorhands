@@ -1,10 +1,8 @@
-scissorhands
-=============
+# scissorhands
 
 A python module for generating Eddie3 (SunGridEngine) qsub scripts.
 
-Installation
--------------
+## Installation
 
 First download/clone the repo, and then in the top-level directory:
 
@@ -12,8 +10,7 @@ First download/clone the repo, and then in the top-level directory:
 python setup.py install --user
 ```
 
-Examples
---------
+## Examples
 
 ### Manually creating submission scripts
 
@@ -27,8 +24,8 @@ print(my_script)
 
 The `user` argument is automatically detected if code is ran on the cluster.
 
-```
-#!/bin/bash
+```sh
+#!/bin/sh
 
 #$ -N example_job
 #$ -l h_vmem=12G
@@ -53,8 +50,8 @@ my_script.template += to_run
 print(my_script)
 ```
 
-```
-#!/bin/bash
+```shell
+#!/bin/sh
 
 #$ -N example_job
 #$ -l h_vmem=2G
@@ -69,15 +66,18 @@ Rscript my_R_code.R
 
 ```
 
+After saving, scripts can be submitted to the queue if the session
+is on a cluster login node.
+
 ```python
-my_script.save("/home/user/save_location")
+my_script.save("my_script.sh").submit()
 ```
 
 ------------
 
 ### Submission script generator
 
-To generate and save submission scripts in a loop *(though you should use an
+To generate, save and submit submission scripts in a loop *(though you should use an
 array job for this sort of task)*:
 
 ```python
@@ -89,6 +89,7 @@ for index, code_snippet in enumerate(to_run):
     script = AnalysisScript(name="job_{}".format(index))
     script.template += code_snippet
     script.save("job_{}.sh".format(index))
+    script.submit()
 ```
 
 --------
@@ -99,7 +100,7 @@ If we have a text file of commands, with a command per line.
 
 e.g `my_commands.txt`:
 
-```
+```shell
 python script.py --arg1 10 --arg2 1
 python script.py --arg1 20 --arg2 1
 python script.py --arg1 30 --arg2 1
@@ -131,7 +132,7 @@ my_script.save("my_array_job.sh")
 
 Which saves this file:
 
-```bash
+```shell
 
 #!/bin/bash
 

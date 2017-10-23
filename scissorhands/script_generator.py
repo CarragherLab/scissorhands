@@ -56,7 +56,7 @@ class SGEScript(object):
 
         self.template = textwrap.dedent(
             """
-            #!/bin/bash
+            #!/bin/sh
 
             #$ -N {name}
             #$ -l h_vmem={memory}
@@ -87,7 +87,9 @@ class SGEScript(object):
         else:
             raise RuntimeError("Cannot submit job, not on a login node.")
 
-
+    def run(self):
+        """alias for submit()"""
+        self.submit()
 
 
 class AnalysisScript(SGEScript):
@@ -157,7 +159,7 @@ class AnalysisScript(SGEScript):
         if pe is not None:
             self.template += "#$ -pe {}\n".format(pe)
 
-        self.template += "\n. /etc/profiles.d/modules.sh\n"
+        self.template += "\n. /etc/profile.d/modules.sh\n"
 
 
     def loop_through_file(self, input_file):

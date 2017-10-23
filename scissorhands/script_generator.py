@@ -232,7 +232,7 @@ def generate_random_hex():
     tmp = "0123456789abcdef"
     result = [random.choice('abcdef')] + [random.choice(tmp) for _ in range(4)]
     random.shuffle(result)
-    result.insert(0, random.choice(tmp[1:]))
+    result.insert(0, random.choice(tmp[10:]))
     return "".join(result)
 
 

@@ -4,10 +4,13 @@ A python module for generating Eddie3 (SunGridEngine) qsub scripts.
 
 ## Installation
 
-First download/clone the repo, and then in the top-level directory:
+1. Download/clone this repository.
+2. Install using the `setup.py` file.
 
 ```bash
-python setup.py install --user
+git clone https://github.com/carragherlab/scissorhands
+cd scissorhands
+python setup.py install --user # or pip install .
 ```
 
 ## Examples
@@ -22,7 +25,7 @@ my_script = AnalysisScript(name="example_job", memory="12G")
 print(my_script)
 ```
 
-The `user` argument is automatically detected if code is ran on the cluster.
+The `user` argument is automatically detected if code is ran on the cluster, and if an output location `-o` is not given, then this defaults to the user's scratch space.
 
 ```sh
 #!/bin/sh
@@ -92,7 +95,7 @@ for index, code_snippet in enumerate(to_run):
     script.submit()
 ```
 
---------
+------------
 
 ### Creating array jobs
 
@@ -134,7 +137,7 @@ Which saves this file:
 
 ```shell
 
-#!/bin/bash
+#!/bin/sh
 
 #$ -N my_array_job
 #$ -l h_vmem=2G
@@ -151,3 +154,6 @@ SEED=$(awk "NR==$SGE_TASK_ID" "$SEEDFILE")
 $SEED
 
 ```
+
+------------
+This uses awk to run each line of code in `commands.txt` corresponding to each `$SGE_TASK_ID`, which in this case is 1..6.

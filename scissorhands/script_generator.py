@@ -37,8 +37,20 @@ class SGEScript(object):
     --------
 
     save:
-        arguments = path: string
         Save script to location specified in `path`
+
+        Parameters:
+        -------------
+        path: string
+            location to save the script
+
+
+    submit:
+        Submit script to job queue. Only works if script has been saved.
+
+        Parameters:
+        -----------
+        none
     """
 
     def __init__(self, name=None, user=None, memory="2G", runtime="06:00:00",
@@ -168,7 +180,7 @@ class AnalysisScript(SGEScript):
         command to be run on each line.
 
         This using an array job this will setup an awk command to run each
-        line according to the SGE_TASK_ID
+        line of according to the SGE_TASK_ID
 
         Parameters:
         -----------
@@ -234,6 +246,8 @@ def generate_random_hex():
     tmp = "0123456789abcdef"
     result = [random.choice('abcdef')] + [random.choice(tmp) for _ in range(4)]
     random.shuffle(result)
+    # job names cannot start with a number
+    # insert first character from the letters onwards
     result.insert(0, random.choice(tmp[10:]))
     return "".join(result)
 
@@ -252,7 +266,8 @@ def get_user(user):
         return os.environ["USER"]
     else:
         raise ValueError("No argument given for 'user' and not running on "
-            "the cluster, therefore unable to automatically detect the username")
+                         "the cluster, therefore unable to automatically "
+                         "detect the username")
 
 
 def on_the_cluster():
@@ -279,8 +294,8 @@ def on_login_node():
     Determine if we are on a login node, i.e not a compute or staging node, and
     capable of submitting jobs.
 
-    Done my checking for $SGE_ROOT in the environment variables, this is not
-    present on the compute nodes.
+    This is done by checking for $SGE_ROOT in the environment variables, which
+    is not present on the compute nodes.
     """
     if on_the_cluster():
         return "SGE_ROOT" in os.environ

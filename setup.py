@@ -7,5 +7,6 @@ setup(
     description="Generate Eddie3 submission scripts from python",
     author="Scott Warchal",
     license="MIT",
+    packages=["scissorhands"],
     tests_require=["pytest"]
 )

@@ -55,16 +55,12 @@ class SGEScript(object):
 
     def __init__(self, name=None, user=None, memory="2G", runtime="06:00:00",
                  output=None):
-        name = generate_random_hex() if name is None else name
-        self.name = name
+        self.name = generate_random_hex() if name is None else name
         self.user = get_user(user)
         self.memory = memory
         self.runtime = runtime
         self.save_path = None
-
-        if output is None:
-            output = "/exports/eddie/scratch/{}/".format(self.user)
-        self.output = output
+        self.output = "/exports/eddie/scratch/{}/".format(self.user) if output is None else output
 
         self.template = textwrap.dedent(
             """
@@ -75,7 +71,8 @@ class SGEScript(object):
             #$ -l h_rt={runtime}
             #$ -o {output}
             #$ -j y
-            """.format(name=name, memory=memory, runtime=runtime, output=output))
+            """.format(name=self.name, memory=self.memory,
+                       runtime=self.runtime, output=self.output))
 
     def __str__(self):
         return str(self.template)
@@ -205,8 +202,8 @@ class StagingScript(SGEScript):
     --------
     """
 
-    def __init__(self, *args, **kwargs):
-        SGEScript.__init__(self, *args, **kwargs)
+    def __init__(self, memory="500M", *args, **kwargs):
+        SGEScript.__init__(self, memory=memory, *args, **kwargs)
         self.template += "#$ -q staging\n"
 
 
@@ -222,8 +219,8 @@ class DestagingScript(SGEScript):
     --------
     """
 
-    def __init__(self, *args, **kwargs):
-        SGEScript.__init__(self, *args, **kwargs)
+    def __init__(self, memory="500M", *args, **kwargs):
+        SGEScript.__init__(self, memory=memory, *args, **kwargs)
 
 
 def generate_random_hex():
@@ -305,3 +302,4 @@ def on_login_node():
         return "SGE_ROOT" in os.environ
     else:
         return False
+

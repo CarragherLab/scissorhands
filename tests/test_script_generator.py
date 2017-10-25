@@ -56,8 +56,10 @@ def test_StagingScript():
     """docstring"""
     script = script_generator.StagingScript(user="user")
     assert "\n#$ -q staging\n" in script.template
+    assert script.memory == "500M"
 
 
 def test_DestagingScript():
     """docstring"""
-    pass
+    script = script_generator.DestagingScript(user="user")
+    assert script.memory == "500M"

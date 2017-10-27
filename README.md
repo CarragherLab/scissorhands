@@ -163,6 +163,8 @@ This uses awk to run each line of code in `commands.txt` corresponding to each `
 
 We can also use scissorhands to parse `qacct` output into more sensible python structures.
 
+This is mainly useful for checking memory useage, and if any tasks have failed.
+
 A typical `qacct -j "my_job"` output for an array job looks like:
 
 ```
@@ -354,4 +356,20 @@ print(job_accnt)
         'slots': '1',
         'start_time': 'Thu Oct 26 20:31:22 2017',
         'taskid': '99'}}
+```
+
+Which if you wanted could be transformed into a table with `pandas`.
+
+```python
+import pandas as pd
+
+my_dict = job_accnt.qacct_dict
+my_df = pd.DataFrame.from_dict(my_dict, orient="index")
+```
+
+```
+   account       arid        cpu         department                  end_time ...
+98     sge  undefined  17176.678  defaultdepartment  Fri Oct 27 01:17:00 2017 ...
+99     sge  undefined  19008.199  defaultdepartment  Fri Oct 27 02:53:58 2017 ...
+...
 ```

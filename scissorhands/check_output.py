@@ -9,34 +9,30 @@ class Qacct(object):
 
     """
     Class docstring
+
+
+    Parameters:
+    -----------
+
+
+    Attributes:
+    -----------
+
+
+    Methods:
+    --------
     """
 
     def __init__(self, job_name):
         self.job_name = job_name
-        self.qacct_str = self.get_account()
+        self.qacct_str = subprocess.check_output(["qacct", "-j", job_name])
         self.qacct_list = self.parse_account_list()
         self.qacct_dict = self.parse_account_dict()
+        self.failed_tasks = self.find_failed()
 
     def __repr__(self):
         return "qacct: {}".format(self.job_name)
 
-    def __str__(self):
-        return str(self.qacct_dict)
-
-    def get_account(self):
-        """
-        Return output of `qacct -j $JOB_NAME`.
-
-        Parameters:
-        ----------
-        job_name: string
-            name of submitted analysis job
-
-        Returns:
-        --------
-        Wall-of-text from qacct output
-        """
-        return subprocess.check_output(["qacct", "-j", self.job_name])
 
     def parse_account_list(self):
         """
@@ -65,7 +61,7 @@ class Qacct(object):
     def parse_account_dict(self):
         """
         Parse wall-of-text from `get_account` into a nested list.
-        
+
         Returns:
         --------
         Dictionary.
@@ -99,4 +95,31 @@ class Qacct(object):
             output_dict[task_id] = task_dict
         return output_dict
 
+    def find_failed(self):
+        """
+        Return list of failed task ids
+        """
+        failed_tasks = []
+        for task_id, task_dict in self.qacct_dict.items():
+            if task_dict["exit_status"] != "0":
+                failed_tasks.append(int(task_id))
+        failed_tasks.sort()
+        return failed_tasks
+
+    def get_failed_commands(self, commands_file):
+        """
+        Returns commands from failed tasks
+
+        Parameters:
+        ----------
+        commands_files: string
+            path to file containing commands, command per line
+
+        Returns:
+        --------
+        list of commands that correspond to failed tasks
+        """
+        with open(commands_file, "r") as f:
+            commands = [line.strip() for line in f.readlines()]
+        return [commands[i] for i in self.find_failed()]
 

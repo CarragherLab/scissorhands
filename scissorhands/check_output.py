@@ -123,3 +123,22 @@ class Qacct(object):
             commands = [line.strip() for line in f.readlines()]
         return [commands[i] for i in self.find_failed()]
 
+    def make_failed_commands(self, commands_file, output_file):
+        """
+        Writes commands from failed tasks to a file
+
+        Parameters:
+        ----------
+        commands_files: string
+            path to file containing commands, command per line
+
+        output_file: string
+            location where to save the commands
+
+        Returns:
+        --------
+        Nothing, writes file to disk
+        """
+        with open(output_file, "w") as f:
+            for command in self.get_failed_commands(commands_file):
+                f.write(command + "\n")

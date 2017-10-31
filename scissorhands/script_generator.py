@@ -32,6 +32,24 @@ class SGEScript(object):
         output location for stdout and stderr files, defaults to user's
         scratch space. This is just for the job output, i.e jobname.o1234568
 
+    tasks: string, integer, or list of two integers. (optional)
+        The command to be passed to `#$ -t`.
+        `tasks` can be provided in a few formats
+        - string: it is inserted into the template script.
+        - int: taken as 1-int tasks
+        - [int, int], taken as a range from int-int
+
+    hold_jid: string. (optional)
+        name of job which has to finish for this job to start running
+
+    hold_jid_ad: string. (optional)
+        name of array job, this array job will wait to the corresponding
+        $SGE_TASK_ID in `hold_jid_ad` to finish running before starting
+        that task.
+
+    pe: string. (optional)
+        parallel environment passed to `#$ -pe`
+
 
     Methods:
     --------

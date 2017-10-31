@@ -36,6 +36,20 @@ class SGEScript(object):
     Methods:
     --------
 
+    loop_through_file:
+        Adds text to template to loop through `input_file`, running a
+        task for each line of `input_file` as an array job.
+
+        Parameters:
+        ------------
+        intput_file: string
+            path to file containing commands
+
+        Returns:
+        --------
+        Nothing, adds text to template script in place.
+
+
     save:
         Save script to location specified in `path`
 
@@ -54,7 +68,9 @@ class SGEScript(object):
     """
 
     def __init__(self, name=None, user=None, memory="2G", runtime="06:00:00",
-                 output=None):
+                 output=None, tasks=None, hold_jid=False, hold_jid_ad=False,
+                 pe=None):
+
         self.name = generate_random_hex() if name is None else name
         self.user = get_user(user)
         self.memory = memory
@@ -73,6 +89,23 @@ class SGEScript(object):
             #$ -j y
             """.format(name=self.name, memory=self.memory,
                        runtime=self.runtime, output=self.output))
+        if tasks is not None:
+            self.tasks = parse_tasks(tasks)
+            self.array = True
+            self.template += "#$ -t {}\n".format(self.tasks)
+        else:
+            self.array = False
+
+        if hold_jid is not False and hold_jid_ad is not False:
+            raise ValueError("Cannot use both 'hold_jid' and 'hold_jid_ad'")
+        if hold_jid is not False:
+            self.template += "#$ -hold_jid {}\n".format(hold_jid)
+        if hold_jid_ad is not False:
+            self.template += "#$ -hold_jid_ad {}\n".format(hold_jid_ad)
+
+        if pe is not None:
+            self.template += "#$ -pe {}\n".format(pe)
+
 
     def __str__(self):
         return str(self.template)
@@ -80,6 +113,35 @@ class SGEScript(object):
     def __repr__(self):
         return "SGEScript: name={}, memory={}, runtime={}, user={}".format(
             self.name, self.memory, self.runtime, self.user)
+
+    def loop_through_file(self, input_file):
+        """
+        Add text to script template to loop through a file containing a
+        command to be run on each line.
+
+        This using an array job this will setup an awk command to run each
+        line of according to the SGE_TASK_ID
+
+        Parameters:
+        -----------
+        input_file: path to a file
+            This file should contain multiple lines of commands.
+            Each line will be run separately in an array  job.
+
+        Returns:
+        --------
+        Nothing, adds text to template script in place.
+        """
+        if self.array is False:
+            raise AttributeError("Cannot use method `loop_through_files` "
+                                    "without settings `tasks` argument")
+        # one way of getting the line from `input_file` to match $SGE_TASK_ID
+        text = """
+                SEEDFILE="{input_file}"
+                SEED=$(awk "NR==$SGE_TASK_ID" "$SEEDFILE")
+                $SEED
+                """.format(input_file=input_file)
+        self.template += textwrap.dedent(text)
 
     def save(self, path):
         """save script/template to path"""
@@ -107,88 +169,15 @@ class AnalysisScript(SGEScript):
 
     Parameters:
     -----------
-    array: Boolean
-
-    tasks: string, int or list of 2 ints
-
-    hold_jid: string
-
-    hold_jid_ad: string
-
-    pe: string
-
 
     Methods:
     --------
 
-    loop_through_file:
-        Adds text to template to loop through `input_file`, running a
-        task for each line of `input_file` as an array job.
-
-        Parameters:
-        ------------
-        intput_file: string
-            path to file containing commands
-
-        Returns:
-        --------
-        Nothing, adds text to template script in place.
     """
 
-    def __init__(self, tasks=None, hold_jid=False,
-                 hold_jid_ad=False, pe=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         SGEScript.__init__(self, *args, **kwargs)
-
-        if tasks is not None:
-            self.tasks = parse_tasks(tasks)
-            self.array = True
-            self.template += "#$ -t {}\n".format(self.tasks)
-        else:
-            self.array = False
-
-        if hold_jid is not False and hold_jid_ad is not False:
-            raise ValueError("Cannot use both 'hold_jid' and 'hold_jid_ad'")
-        if hold_jid is not False:
-            self.template += "#$ -hold_jid {}\n".format(hold_jid)
-        if hold_jid_ad is not False:
-            self.template += "#$ -hold_jid_ad {}\n".format(hold_jid_ad)
-
-        if pe is not None:
-            self.template += "#$ -pe {}\n".format(pe)
-
         self.template += "\n. /etc/profile.d/modules.sh\n"
-
-
-    def loop_through_file(self, input_file):
-        """
-        Add text to script template to loop through a file containing a
-        command to be run on each line.
-
-        This using an array job this will setup an awk command to run each
-        line of according to the SGE_TASK_ID
-
-        Parameters:
-        -----------
-        input_file: path to a file
-            This file should contain multiple lines of commands.
-            Each line will be run separately in an array  job.
-
-        Returns:
-        --------
-        Nothing, adds text to template script in place.
-        """
-        if self.array is False:
-            raise AttributeError("Cannot use method `loop_through_files` "
-                                 "without settings `tasks` argument")
-        # one way of getting the line from `input_file` to match $SGE_TASK_ID
-        text = """
-               SEEDFILE="{input_file}"
-               SEED=$(awk "NR==$SGE_TASK_ID" "$SEEDFILE")
-               $SEED
-               """.format(input_file=input_file)
-        self.template += textwrap.dedent(text)
-
-
 
 
 class StagingScript(SGEScript):

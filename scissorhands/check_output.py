@@ -121,7 +121,9 @@ class Qacct(object):
         """
         with open(commands_file, "r") as f:
             commands = [line.strip() for line in f.readlines()]
-        return [commands[i] for i in self.find_failed()]
+        # subtract 1 as $SGE_TASK_ID's are 1-indexed, whereas
+        # python list is 0-indexed
+        return [commands[i-1] for i in self.find_failed()]
 
     def make_failed_commands(self, commands_file, output_file):
         """
@@ -142,3 +144,4 @@ class Qacct(object):
         with open(output_file, "w") as f:
             for command in self.get_failed_commands(commands_file):
                 f.write(command + "\n")
+

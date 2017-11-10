@@ -3,7 +3,7 @@ Parsing qacct output
 """
 
 import subprocess
-
+from collections import OrderedDict
 
 class Qacct(object):
 
@@ -32,7 +32,6 @@ class Qacct(object):
 
     def __repr__(self):
         return "qacct: {}".format(self.job_name)
-
 
     def parse_account_list(self):
         """
@@ -79,7 +78,7 @@ class Qacct(object):
         }
 
         """
-        output_dict = {}
+        output_dict = OrderedDict()
         # parse self.qacct_list into a dictionary
         for task_params in self.qacct_list:
             for param in task_params:

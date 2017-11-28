@@ -5,6 +5,7 @@ Parsing qacct output
 import subprocess
 from collections import OrderedDict
 
+
 class Qacct(object):
 
     """
@@ -23,9 +24,17 @@ class Qacct(object):
     --------
     """
 
-    def __init__(self, job_name):
+    def __init__(self, job_name=None, qacct_str=None):
         self.job_name = job_name
-        self.qacct_str = subprocess.check_output(["qacct", "-j", job_name])
+        # if given a qacct string, then use that as job info
+        if qacct_str is None and job_name is not None:
+            self.qacct_str = subprocess.check_output(["qacct", "-j", job_name])
+        # if given a job name, then call qacct on that name to get the job info
+        elif qacct_str is not None and job_name is None:
+            self.qacct_str = qacct_str
+        else:
+            err_msg = "need an argument for either job_name or qacct_str"
+            raise ValueError(err_msg)
         self.qacct_list = self.parse_account_list()
         self.qacct_dict = self.parse_account_dict()
         self.failed_tasks = self.find_failed()

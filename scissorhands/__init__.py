@@ -1,2 +1,1 @@
 from scissorhands import script_generator
-from scissorhands import check_output

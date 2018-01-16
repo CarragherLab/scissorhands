@@ -7,6 +7,7 @@ import random
 import subprocess
 import textwrap
 
+
 class SGEScript(object):
     """
     Base class for SGE submission scripts.
@@ -88,14 +89,12 @@ class SGEScript(object):
     def __init__(self, name=None, user=None, memory="2G", runtime="06:00:00",
                  output=None, tasks=None, hold_jid=False, hold_jid_ad=False,
                  pe=None):
-
         self.name = generate_random_hex() if name is None else name
         self.user = get_user(user)
         self.memory = memory
         self.runtime = runtime
         self.save_path = None
         self.output = "/exports/eddie/scratch/{}/".format(self.user) if output is None else output
-
         self.template = textwrap.dedent(
             """
             #!/bin/sh
@@ -113,17 +112,14 @@ class SGEScript(object):
             self.template += "#$ -t {}\n".format(self.tasks)
         else:
             self.array = False
-
         if hold_jid is not False and hold_jid_ad is not False:
             raise ValueError("Cannot use both 'hold_jid' and 'hold_jid_ad'")
         if hold_jid is not False:
             self.template += "#$ -hold_jid {}\n".format(hold_jid)
         if hold_jid_ad is not False:
             self.template += "#$ -hold_jid_ad {}\n".format(hold_jid_ad)
-
         if pe is not None:
             self.template += "#$ -pe {}\n".format(pe)
-
 
     def __str__(self):
         return str(self.template)
@@ -152,7 +148,7 @@ class SGEScript(object):
         """
         if self.array is False:
             raise AttributeError("Cannot use method `loop_through_files` "
-                                    "without settings `tasks` argument")
+                                 "without settings `tasks` argument")
         # one way of getting the line from `input_file` to match $SGE_TASK_ID
         text = """
                 SEEDFILE="{input_file}"
@@ -172,7 +168,11 @@ class SGEScript(object):
         if on_login_node():
             if self.save_path is None:
                 raise ValueError("Need to save script before submitting")
-            subprocess.Popen(["qsub", os.path.abspath(self.save_path)])
+            else:
+                abs_save_path = os.path.abspath(self.save_path)
+                return_code = subprocess.Popen(["qsub", abs_save_path]).wait()
+                if return_code != 0:
+                    raise RuntimeError("Job submission failed")
         else:
             raise RuntimeError("Cannot submit job, not on a login node.")
 
@@ -212,7 +212,6 @@ class StagingScript(SGEScript):
     def __init__(self, memory="500M", *args, **kwargs):
         SGEScript.__init__(self, memory=memory, *args, **kwargs)
         self.template += "#$ -q staging\n"
-
 
 
 class DestagingScript(SGEScript):
@@ -309,4 +308,3 @@ def on_login_node():
         return "SGE_ROOT" in os.environ
     else:
         return False
-

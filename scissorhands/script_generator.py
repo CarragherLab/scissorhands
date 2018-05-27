@@ -86,15 +86,26 @@ class SGEScript(object):
         none
     """
 
-    def __init__(self, name=None, user=None, memory="2G", runtime="06:00:00",
-                 output=None, tasks=None, hold_jid=False, hold_jid_ad=False,
-                 pe=None):
+    def __init__(
+        self,
+        name=None,
+        user=None,
+        memory="2G",
+        runtime="06:00:00",
+        output=None,
+        tasks=None,
+        hold_jid=False,
+        hold_jid_ad=False,
+        pe=None,
+    ):
         self.name = generate_random_hex() if name is None else name
         self.user = get_user(user)
         self.memory = memory
         self.runtime = runtime
         self.save_path = None
-        self.output = "/exports/eddie/scratch/{}/".format(self.user) if output is None else output
+        self.output = (
+            "/exports/eddie/scratch/{}/".format(self.user) if output is None else output
+        )
         self.template = textwrap.dedent(
             """
             #!/bin/sh
@@ -104,14 +115,20 @@ class SGEScript(object):
             #$ -l h_rt={runtime}
             #$ -o {output}
             #$ -j y
-            """.format(name=self.name, memory=self.memory,
-                       runtime=self.runtime, output=self.output))
+            """.format(
+                name=self.name,
+                memory=self.memory,
+                runtime=self.runtime,
+                output=self.output,
+            )
+        )
         if tasks is not None:
             self.tasks = parse_tasks(tasks)
             self.array = True
             self.template += "#$ -t {}\n".format(self.tasks)
         else:
             self.array = False
+            self.tasks = None
         if hold_jid is not False and hold_jid_ad is not False:
             raise ValueError("Cannot use both 'hold_jid' and 'hold_jid_ad'")
         if hold_jid is not False:
@@ -126,7 +143,8 @@ class SGEScript(object):
 
     def __repr__(self):
         return "SGEScript: name={}, memory={}, runtime={}, user={}".format(
-            self.name, self.memory, self.runtime, self.user)
+            self.name, self.memory, self.runtime, self.user
+        )
 
     def loop_through_file(self, input_file):
         """
@@ -146,15 +164,33 @@ class SGEScript(object):
         --------
         Nothing, adds text to template script in place.
         """
-        if self.array is False:
-            raise AttributeError("Cannot use method `loop_through_files` "
-                                 "without settings `tasks` argument")
+        # if the number of tasks is not set, but we can read the input file
+        # then automatically detect the number of lines in `input_file`
+        # and set this value as `self.tasks`.
+        if self.tasks is None and os.path.isfile(input_file):
+            num_lines = get_num_lines(input_file)
+            self.tasks = "#$ -t 1-{}".format(num_lines)
+            self.template += self.tasks
+            self.array = True
+            print(
+                "NOTE:{} tasks inferred from number of lines in {}".format(
+                    num_lines, input_file
+                )
+            )
+        # if the number of tasks if not given and we can't read `input_file`,
+        # then the number of tasks cannot be set automatically, so raise a
+        # ScriptError
+        elif self.array is False and self.tasks is None:
+            err_msg = "'tasks` was not set, and cannot read {}".format(input_file)
+            raise ScriptError(err_msg)
         # one way of getting the line from `input_file` to match $SGE_TASK_ID
         text = """
                 SEEDFILE="{input_file}"
                 SEED=$(awk "NR==$SGE_TASK_ID" "$SEEDFILE")
                 $SEED
-                """.format(input_file=input_file)
+                """.format(
+            input_file=input_file
+        )
         self.template += textwrap.dedent(text)
 
     def save(self, path):
@@ -167,14 +203,14 @@ class SGEScript(object):
         """submit script to the job queue (if on a login node)"""
         if on_login_node():
             if self.save_path is None:
-                raise ValueError("Need to save script before submitting")
+                raise SubmissionError("Need to save script before submitting")
             else:
                 abs_save_path = os.path.abspath(self.save_path)
                 return_code = subprocess.Popen(["qsub", abs_save_path]).wait()
                 if return_code != 0:
-                    raise RuntimeError("Job submission failed")
+                    raise SubmissionError("Job submission failed")
         else:
-            raise RuntimeError("Cannot submit job, not on a login node.")
+            raise SubmissionError("Cannot submit job, not on a login node.")
 
     def run(self):
         """alias for submit()"""
@@ -235,7 +271,7 @@ def generate_random_hex():
     Lifted from stackoverflow
     """
     tmp = "0123456789abcdef"
-    result = [random.choice('abcdef')] + [random.choice(tmp) for _ in range(4)]
+    result = [random.choice("abcdef")] + [random.choice(tmp) for _ in range(4)]
     random.shuffle(result)
     # job names cannot start with a number
     # insert first character from the letters onwards
@@ -256,9 +292,11 @@ def get_user(user):
     elif on_the_cluster():
         return os.environ["USER"]
     else:
-        raise ValueError("No argument given for 'user' and not running on "
-                         "the cluster, therefore unable to automatically "
-                         "detect the username")
+        raise ScriptError(
+            "No argument given for 'user' and not running on "
+            "the cluster, therefore unable to automatically "
+            "detect the username"
+        )
 
 
 def parse_tasks(tasks):
@@ -270,7 +308,7 @@ def parse_tasks(tasks):
             tasks = "{}-{}".format(*tasks)
         else:
             msg = "'tasks' has to be either a list of length 2 or a str"
-            raise ValueError(msg)
+            raise ScriptError(msg)
     # if tasks is a single integer then we can take that as 1-tasks
     if isinstance(tasks, int):
         tasks = "1-{}".format(tasks)
@@ -308,3 +346,30 @@ def on_login_node():
         return "SGE_ROOT" in os.environ
     else:
         return False
+
+
+def get_num_lines(file_path):
+    """
+    Count number of lines in a file
+
+    Parameters:
+    -----------
+    file_path: string
+        path to file
+
+    Returns:
+    --------
+    int: number of lines in file_path
+    """
+    with open(file_path, "r") as f:
+        for i, _ in enumerate(f, 1):
+            pass
+    return i
+
+
+class SubmissionError(Exception):
+    pass
+
+
+class ScriptError(Exception):
+    pass

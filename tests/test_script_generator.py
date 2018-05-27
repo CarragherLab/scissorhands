@@ -5,6 +5,10 @@ module docstring
 from scissorhands import script_generator
 import os
 
+N_TASKS = 3
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+COMMANDS_LOC = os.path.join(THIS_DIR, "commands.txt")
+
 
 def test_SGEScript():
     """test setting attributes"""
@@ -14,7 +18,9 @@ def test_SGEScript():
     assert my_script.runtime == "06:00:00"
     assert my_script.user == "test_user"
     assert isinstance(my_script.template, str)
-    repr_str = "SGEScript: name=test_script, memory=2G, runtime=06:00:00, user=test_user"
+    repr_str = (
+        "SGEScript: name=test_script, memory=2G, runtime=06:00:00, user=test_user"
+    )
     assert my_script.__repr__() == repr_str
     assert my_script.template
     my_script.template += "#$ -another_option"
@@ -37,8 +43,8 @@ def test_AnalysisScript_loop_through_file():
     script_tasks = script_generator.AnalysisScript(user="user", tasks="1-100")
     script_tasks.loop_through_file(input_file="commands.txt")
     output = script_tasks.template.split("\n")
-    assert output[-4] == "SEEDFILE=\"commands.txt\""
-    assert output[-3] == "SEED=$(awk \"NR==$SGE_TASK_ID\" \"$SEEDFILE\")"
+    assert output[-4] == 'SEEDFILE="commands.txt"'
+    assert output[-3] == 'SEED=$(awk "NR==$SGE_TASK_ID" "$SEEDFILE")'
     assert output[-2] == "$SEED"
     assert "#$ -t 1-100" in output
     assert script_tasks.array is True
@@ -50,6 +56,12 @@ def test_AnalysisScript_set_tasks():
     assert "#$ -t 1-42" in task_int.template
     task_list = script_generator.AnalysisScript(user="user", tasks=[12, 32])
     assert "#$ -t 12-32" in task_list.template
+    # check that tasks are inferred is tasks are missing set
+    # if the input_file is readable
+    task_infer = script_generator.AnalysisScript(user="user")
+    task_infer.loop_through_file(COMMANDS_LOC)
+    assert task_infer.array is True
+    assert task_infer.tasks == "#$ -t 1-{}".format(N_TASKS)
 
 
 def test_StagingScript():

@@ -117,17 +117,7 @@ We want to run this as an array job.
 ```python
 from scissorhands.script_generator import AnalysisScript
 
-# Get the number of lines/commands in the file (should be 6 in this example)
-def file_len(fname):
-    with open(fname) as f:
-        for i, l in enumerate(f, 1):
-            pass
-    return i
-
-n_commands = file_len("my_commands.txt")
-
-# make submission script
-my_script = AnalysisScript(name="my_array_job", tasks=n_commands)
+my_script = AnalysisScript(name="my_array_job")
 my_script.template += "module load python\n"
 my_script.loop_through_file("my_commands.txt")
 my_script.save("my_array_job.sh")
@@ -157,4 +147,7 @@ $SEED
 
 This uses awk to run each line of code in `commands.txt` corresponding to each `$SGE_TASK_ID`, which in this case is 1 to 6.
 
+`scissorhands` automatically detects the number of commands in `commands.txt`,
+though this can be overridden by setting a `task` argument within
+`AnalysisScript`.
 ------------

@@ -150,4 +150,5 @@ This uses awk to run each line of code in `commands.txt` corresponding to each `
 `scissorhands` automatically detects the number of commands in `commands.txt`,
 though this can be overridden by setting a `task` argument within
 `AnalysisScript`.
+
 ------------

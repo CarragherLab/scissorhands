@@ -118,7 +118,7 @@ We want to run this as an array job.
 from scissorhands import AnalysisScript
 
 my_script = AnalysisScript(name="my_array_job")
-my_script += "module load python\n"
+my_script += "module load python"
 my_script.loop_through_file("my_commands.txt")
 my_script.save("my_array_job.sh")
 ```

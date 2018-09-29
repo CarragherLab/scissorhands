@@ -25,6 +25,9 @@ def test_SGEScript():
     assert my_script.template
     my_script.template += "#$ -another_option"
     assert my_script.template.split("\n")[-1] == "#$ -another_option"
+    # test that the __iadd__ method works as expected
+    my_script += "python example.py"
+    assert my_script.template.split("\n")[-1] == "python example.py"
 
 
 def test_SGEScript_mock_cluster():

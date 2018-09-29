@@ -146,6 +146,11 @@ class SGEScript(object):
             self.name, self.memory, self.runtime, self.user
         )
 
+
+    def __iadd__(self, right_side):
+        self.template = self.template + textwrap.dedent("{}\n".format(right_side))
+        return self
+
     def loop_through_file(self, input_file):
         """
         Add text to script template to loop through a file containing a

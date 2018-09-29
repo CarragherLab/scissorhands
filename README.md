@@ -18,9 +18,9 @@ python setup.py install --user # or pip install .
 ### Manually creating submission scripts
 
 ```python
-from scissorhands.script_generator import AnalysisScript
+import scissorhands as eddie
 
-my_script = AnalysisScript(name="example_job", memory="12G")
+my_script = eddie.AnalysisScript(name="example_job", memory="12G")
 
 print(my_script)
 ```
@@ -48,7 +48,7 @@ to_run = """
          Rscript my_R_code.R
          """
 
-my_script.template += to_run
+my_script += to_run
 
 print(my_script)
 ```
@@ -84,13 +84,13 @@ To generate, save and submit submission scripts in a loop *(though you should us
 array job for this sort of task)*:
 
 ```python
-from scissorhands.script_generator import AnalysisScript
+from scissorhands import AnalysisScript
 
 to_run = ["Rscript my_script_{}.R".format(i) for i in range(10)]
 
 for index, code_snippet in enumerate(to_run):
     script = AnalysisScript(name="job_{}".format(index))
-    script.template += code_snippet
+    script += code_snippet
     script.save("job_{}.sh".format(index))
     script.submit()
 ```
@@ -115,10 +115,10 @@ python script.py --arg2 30 --arg2 2
 We want to run this as an array job.
 
 ```python
-from scissorhands.script_generator import AnalysisScript
+from scissorhands import AnalysisScript
 
 my_script = AnalysisScript(name="my_array_job")
-my_script.template += "module load python\n"
+my_script += "module load python\n"
 my_script.loop_through_file("my_commands.txt")
 my_script.save("my_array_job.sh")
 ```

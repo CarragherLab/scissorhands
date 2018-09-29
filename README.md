@@ -91,9 +91,9 @@ from scissorhands import AnalysisScript
 to_run = ["Rscript my_script_{}.R".format(i) for i in range(10)]
 
 for index, code_snippet in enumerate(to_run):
-    script = AnalysisScript(name="job_{}".format(index))
+    script = AnalysisScript(name=f"job_{index}")
     script += code_snippet
-    script.save("job_{}.sh".format(index))
+    script.save(f"job_{index}.sh")
     script.submit()
 ```
 

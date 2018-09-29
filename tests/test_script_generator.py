@@ -23,11 +23,14 @@ def test_SGEScript():
     )
     assert my_script.__repr__() == repr_str
     assert my_script.template
-    my_script.template += "#$ -another_option"
-    assert my_script.template.split("\n")[-1] == "#$ -another_option"
+    my_script += "#$ -another_option"
+    # add __iadd__ adds a final "\n" to the added text, when splitting by "\n"
+    # we need to look for the second to last element, as the last one if just
+    # and empty string
+    assert my_script.template.split("\n")[-2] == "#$ -another_option"
     # test that the __iadd__ method works as expected
     my_script += "python example.py"
-    assert my_script.template.split("\n")[-1] == "python example.py"
+    assert my_script.template.split("\n")[-2] == "python example.py"
 
 
 def test_SGEScript_mock_cluster():

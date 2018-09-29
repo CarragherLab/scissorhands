@@ -1,5 +1,7 @@
 # scissorhands
 
+[![Build Status](https://travis-ci.org/CarragherLab/scissorhands.svg?branch=master)](https://travis-ci.org/CarragherLab/scissorhands)
+
 A python module for generating Eddie3 (SunGridEngine) qsub scripts.
 
 ## Installation

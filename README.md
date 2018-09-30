@@ -88,7 +88,7 @@ array job for this sort of task)*:
 ```python
 from scissorhands import AnalysisScript
 
-to_run = ["Rscript my_script_{}.R".format(i) for i in range(10)]
+to_run = [f"Rscript my_script_{i}.R" for i in range(10)]
 
 for index, code_snippet in enumerate(to_run):
     script = AnalysisScript(name=f"job_{index}")

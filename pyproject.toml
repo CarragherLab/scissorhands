@@ -1,0 +1,95 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "scissorhands"
+version = "0.3.0"
+description = "Generate Eddie3 submission scripts from python"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Scott Warchal", email = "scott.warchal@ed.ac.uk"}
+]
+keywords = ["sge", "gridengine", "cluster", "submission", "scripts", "eddie"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: System :: Clustering",
+    "Topic :: System :: Distributed Computing",
+]
+
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+    "ruff>=0.7",
+    "mypy>=1.11",
+    "build>=1.0",
+]
+test = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/carragherlab/scissorhands"
+Repository = "https://github.com/carragherlab/scissorhands"
+"Bug Tracker" = "https://github.com/carragherlab/scissorhands/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/scissorhands"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+]
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "I", "N", "W"]
+exclude = [".venv", "build", "dist", "*.egg-info"]
+target-version = "py39"
+
+[tool.ruff.lint]
+ignore = [
+    "E501",  # Line too long (handled by formatter)
+    "W503",  # Line break before binary operator
+]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true

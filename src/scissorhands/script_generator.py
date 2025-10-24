@@ -248,6 +248,7 @@ class StagingScript(SGEScript):
 
     Methods:
     --------
+
     """
 
     def __init__(self, memory="500M", *args, **kwargs):
@@ -264,6 +265,7 @@ class DestagingScript(SGEScript):
 
     Methods:
     --------
+
     """
 
     def __init__(self, memory="500M", *args, **kwargs):
@@ -289,8 +291,8 @@ def get_user(user):
     - Return username. If passed a username then will simply return that.
     - If not given a user an an argument, then this will try and determine
       username from the environment variables (if running on the cluster).
-    - Will raise a ValueError if not passed a user and not running on the
-      cluster.
+    - Will raise a ValueError if not passed a user and not running on
+      the cluster.
     """
     if user is not None:
         return user

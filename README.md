@@ -1,19 +1,26 @@
 # scissorhands
 
-[![Build Status](https://travis-ci.org/CarragherLab/scissorhands.svg?branch=master)](https://travis-ci.org/CarragherLab/scissorhands)
-
 A python module for generating Eddie3 (SunGridEngine) qsub scripts.
 
 ## Installation
 
-1. Download/clone this repository.
-2. Install using the `setup.py` file, or with pip.
+### From PyPI (recommended)
+
+```bash
+pip install scissorhands
+```
+
+### Development Installation
 
 ```bash
 git clone https://github.com/carragherlab/scissorhands
 cd scissorhands
-python setup.py install --user # or pip install .
+pip install -e ".[dev]"
 ```
+
+### Requirements
+
+- Python 3.9 or higher
 
 ## Examples
 
@@ -78,8 +85,6 @@ is on a cluster login node.
 my_script.save("my_script.sh").submit()
 ```
 
-------------
-
 ### Submission script generator
 
 To generate, save and submit submission scripts in a loop *(though you should use an
@@ -96,8 +101,6 @@ for index, code_snippet in enumerate(to_run):
     script.save(f"job_{index}.sh")
     script.submit()
 ```
-
-------------
 
 ### Creating array jobs
 
@@ -153,4 +156,27 @@ This uses awk to run each line of code in `commands.txt` corresponding to each `
 though this can be overridden by setting a `task` argument within
 `AnalysisScript`.
 
-------------
+## Development
+
+### Setup Development Environment
+
+```bash
+# Install development dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest
+
+# Run linting
+ruff check .
+
+# Run type checking
+mypy src/
+```
+
+### Building
+
+```bash
+# Build distribution packages
+python -m build
+```
